@@ -690,9 +690,19 @@ namespace PSSQT
 
                     var queryResults = requestResponsePair.GetResultItem<SearchQueryResult>();
 
-                    totalRows = queryResults.PrimaryQueryResult.TotalRows;
+                    if (queryResults.PrimaryQueryResult != null)
+                    {
+                        totalRows = queryResults.PrimaryQueryResult.TotalRows;
 
-                    queryResultProcessor.Process(queryResults);
+                        queryResultProcessor.Process(queryResults);
+                    }
+                    else
+                    {
+                        var ex = new UnexpectedResultException(queryResults, "(PrimaryQueryResult is null)");
+ 
+
+                        ThrowTerminatingError(new ErrorRecord(ex, GetType().Name, ErrorCategory.NotSpecified, null));
+                    }
                 }
                 catch (RankDetailTooManyResults ex)
                 {

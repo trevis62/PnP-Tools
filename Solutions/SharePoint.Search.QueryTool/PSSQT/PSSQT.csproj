@@ -54,6 +54,7 @@
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.ServiceModel.Channels" />
     <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -180,6 +181,7 @@
     <Compile Include="..\SearchQueryTool\SPAuthenticationClient\AuthenticationClient.cs">
       <Link>SPAuthenticationClient\AuthenticationClient.cs</Link>
     </Compile>
+    <Compile Include="Helpers\Extensions.cs" />
     <Compile Include="ResultProcessor\AllPropertiesInlineResultProcessor.cs" />
     <Compile Include="ResultProcessor\AllPropertiesResultProcessor.cs" />
     <Compile Include="ResultProcessor\AllResultsResultProcessor.cs" />
@@ -253,6 +255,7 @@
     <Compile Include="StringListArgumentParser.cs" />
     <Compile Include="ResultProcessor\SuggestionsResultProcessor.cs" />
     <Compile Include="TransformResults.cs" />
+    <Compile Include="UnexpectedResultException.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Doc\PSSQT.docx" />
