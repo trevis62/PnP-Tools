@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Classic" x:Class="SearchQueryTool.MainWindow"
         Icon="Images/sp_site.png"
-        Title="SharePoint Search Query Tool v2.8.3" Height="820" Width="1100" MinWidth="800" MinHeight="600">
+        Title="SharePoint Search Query Tool v2.8.4" Height="820" Width="1100" MinWidth="800" MinHeight="600">
     <Window.Resources>
         <DrawingImage x:Key="Overlay">
             <DrawingImage.Drawing>
@@ -38,10 +38,10 @@
                                     </MultiBinding>
                                 </Themes:ClassicBorderDecorator.OpacityMask>
                             </Themes:ClassicBorderDecorator>
-                            <Border x:Name="Header" Grid.Column="1" Padding="3,0,3,0" Grid.Row="0" Grid.RowSpan="2">
+                            <Border x:Name="Header" Grid.Column="2" Padding="3,0,3,0" Grid.Row="0" Grid.RowSpan="2">
                                 <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                             </Border>
-                            <ContentPresenter Grid.ColumnSpan="2" Grid.Column="1" Margin="{TemplateBinding Padding}" Grid.Row="2" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                            <ContentPresenter Grid.ColumnSpan="3" Grid.Column="2" Margin="{TemplateBinding Padding}" Grid.Row="2" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                         </Grid>
                     </ControlTemplate>
                 </Setter.Value>
@@ -55,7 +55,8 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="1.4*" MaxWidth="430"/>
+            <ColumnDefinition Width="1.2*"/>
+            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="2*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
@@ -66,7 +67,12 @@
             <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
 
-        <Menu Grid.ColumnSpan="2">
+        <GridSplitter HorizontalAlignment="Right" 
+                  VerticalAlignment="Stretch" 
+                  Grid.Column="1" ResizeBehavior="PreviousAndNext" ResizeDirection="Columns" Foreground="Green"
+                  Width="5" Background="Red"/>
+
+        <Menu Grid.ColumnSpan="3">
             <MenuItem Header="File">
                 <MenuItem Header="Save Connection Properties" Click="MenuSaveConnectionProperties_Click" />
                 <MenuItem Header="Exit" Click="MenuFileExit_Click" />
@@ -81,18 +87,27 @@
 
 
 
-        <DockPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="10,10,10,0" MaxHeight="50">
+        <DockPanel Grid.Row="1" Grid.ColumnSpan="3" Margin="10,10,10,0" MaxHeight="50">
+            <Button Name="BackButton" Click="BackButton_OnClick" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}" ToolTip="Backward">
+                <Image Source="Images/backward_icon.png" DockPanel.Dock="Right"/>
+            </Button>
+
             <Button Padding="8" 
 				IsDefault="{Binding IsKeyboardFocused, ElementName=QueryTextBox}"
 				x:Name="RunButton"
 				Margin="10,0,10,0" 
 				Click="RunButton_Click"
 				Width="100" Content="Run"/>
+
+            <Button Name="ForwardButton" Click="ForwardButton_OnClick" BorderBrush="{x:Null}" Background="{x:Null}" Foreground="{x:Null}" ToolTip="Forward">
+                <Image Source="Images/forward_icon.png" DockPanel.Dock="Right"/>
+            </Button>
+
             <Separator Width="10" />
             <TextBox x:Name="RequestUriStringTextBox" TextWrapping="Wrap" IsReadOnly="True" IsReadOnlyCaretVisible="True" Margin="10,0,10,0" Padding="8" Foreground="#FF0009C3" />
         </DockPanel>
 
-        <DockPanel  Grid.Row="2" Name="BreadCrumbDockPanel" Grid.ColumnSpan="2" Margin="10,10,0,0" HorizontalAlignment="Left" Visibility="Collapsed">
+        <DockPanel  Grid.Row="2" Name="BreadCrumbDockPanel" Grid.ColumnSpan="3" Margin="10,10,0,0" HorizontalAlignment="Left" Visibility="Collapsed">
             <DockPanel>
                 <!--<Expander Name="ExpanderHiddenConstraints" Header="Hidden Constraints" IsExpanded="false" Foreground="Black" Content="{WrapPanel Name=HiddenConstraintWrapPanel, Orientation=Horizontal}" />-->
                 <Expander Name="ExpanderHiddenConstraints" Header="Hidden Constraints" IsExpanded="false" Foreground="Black">
@@ -124,21 +139,22 @@
                                         </StackPanel>
 
                                         <StackPanel Margin="5,5,0,0" Orientation="Horizontal">
-                                            <Label Content="Query Text:" 
-												HorizontalAlignment="Left" 
-												VerticalAlignment="Top"/>
+                                            <Label Content="Query Text:" HorizontalAlignment="Left" VerticalAlignment="Top"/>
                                         </StackPanel>
-
+                                        
                                         <TextBox x:Name="QueryTextBox"
-                                                 Margin="5,0,5,0" 
-											AcceptsReturn="False"
-											Height="60"
-											Padding="4" 
-											TextWrapping="Wrap" 
-											DataContext="Query" MouseDoubleClick="QueryDoubleClick"
-											LostFocus="SearchQueryTextBox_LostFocus_Handler">
+                                                Margin="5,0,5,0" 
+										AcceptsReturn="False"
+										FontFamily="Courier New"
+                                        Height="Auto"
+                                        MinHeight="60" MaxHeight="180"
+										Padding="4" 
+										TextWrapping="Wrap" 
+										DataContext="Query" MouseDoubleClick="QueryDoubleClick"
+										LostFocus="SearchQueryTextBox_LostFocus_Handler">
                                             *
                                         </TextBox>
+                                        
 
                                         <StackPanel Margin="5,15,5,0" Orientation="Horizontal">
                                             <Label Content="Start:" 
@@ -390,71 +406,102 @@
 														IsChecked="False"
 														ToolTip="Include Rank Detail - Requires admin access! Make sure less than 100 results are returned, otherwise the rank detail wont show!"
 														Unchecked="SearchQueryCheckBox_CheckChanged"
-														Checked="SearchQueryCheckBox_CheckChanged" Grid.ColumnSpan="2" Content="Include Rank Detail"/>
+														Checked="SearchQueryCheckBox_CheckChanged" Grid.ColumnSpan="3" Content="Include Rank Detail"/>
                                                 </Grid>
                                             </StackPanel>
 
-                                            <DockPanel Grid.Row="1" Grid.ColumnSpan="3" Margin="0,10,0,5">
+                                            <DockPanel Grid.Row="1" Grid.ColumnSpan="4" Margin="0,10,0,5">
                                                 <Button Content="Reset All Checkboxes" x:Name="ResetCheckboxesButton" HorizontalAlignment="Left" Click="ResetCheckboxesButton_Click" VerticalAlignment="Center" Margin="0,0,5,0" />
-                                                <Button Content="Save As New Preset..." Name="SaveAsNewPresetButton" HorizontalAlignment="Left" Click="SaveAsNewPresetButton_OnClick" VerticalAlignment="Center" Margin="0,0,5,0" />
                                                 <Button Content="Copy to clipboard" ToolTip="Copy the JSON/XML result to the clip board" Name="CopyClipboardButton" HorizontalAlignment="Left" Click="CopyClipboardButton_OnClickButton_OnClick" VerticalAlignment="Center" Margin="0,0,5,0" />
                                             </DockPanel>
                                         </Grid>
 
                                         <StackPanel Margin="5,5,5,0">
-                                            <DockPanel Grid.Row="1" Grid.ColumnSpan="3" Margin="0,0,0,5">
-                                                <Label Content="Presets:" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                                                <ComboBox Name="PresetComboBox" Margin="5" SelectionChanged="PresetComboBox_OnSelectionChanged" Width="281" Height="22">
-                                                    <ComboBox.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <StackPanel Orientation="Horizontal">
-                                                                <TextBlock Text="{Binding Name}" />
-                                                            </StackPanel>
-                                                        </DataTemplate>
-                                                    </ComboBox.ItemTemplate>
-                                                </ComboBox>
-                                                <Button Content="Save" Name="SavePresetButton" HorizontalAlignment="Left" Click="SavePresetButton_OnClick" VerticalAlignment="Center" Margin="0,0,5,0" />
-                                            </DockPanel>
-                                        </StackPanel>                                        
+                                            <Label Content="Show presets containing:" Margin="0,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                                            <TextBox x:Name="PresetFilterTextBox" Margin="5,0,5,0" Height="26"/>
+
+                                            <ComboBox Name="PresetComboBox" Margin="5" SelectionChanged="PresetComboBox_OnSelectionChanged" DropDownOpened="PresetComboBox_OnDropDownOpened" >
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="{Binding Name}" />
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
+
+                                            <TextBox x:Name="AnnotatePresetTextBox" Margin="5,0,5,5" MinHeight="90" Visibility="Collapsed" TextWrapping="Wrap" AcceptsReturn="True"/>
+                                            <StackPanel Margin="5,0,0,0" Orientation="Horizontal" HorizontalAlignment="Right">
+                                                <Button Name="AnnotatePreset" HorizontalAlignment="Left" Click="AnnotatePreset_OnClick"
+                                                        VerticalAlignment="Center" Margin="0,0,5,0" ToolTip="Toggle preset annotation">
+                                                    <Image Source="Images/comment.png" Width="14" Height="14" DockPanel.Dock="Right"/>
+                                                </Button>
+                                                
+                                                <Button Name="SaveAsNewPresetButton" HorizontalAlignment="Left" Click="SaveAsNewPresetButton_OnClick" 
+                                                        VerticalAlignment="Center" Margin="0,0,5,0" ToolTip="Save as new preset">
+                                                    <Image Source="Images/save_as_icon.png" Width="14" Height="14" DockPanel.Dock="Right"/>
+                                                </Button>
+
+                                                <Button Name="SavePresetButton" HorizontalAlignment="Left" Click="SavePresetButton_OnClick" 
+                                                        VerticalAlignment="Center" Margin="0,0,5,0" ToolTip="Save changes to current preset" >
+                                                    <Image Source="Images/save_icon.png" Width="14" Height="14" DockPanel.Dock="Right"/>
+                                                </Button>
+
+                                            </StackPanel>
+                                        </StackPanel>
                                         
-                                        <DockPanel Margin="5,5,5,0">
-                                            <Label Content="Query Template:" 
-												HorizontalAlignment="Left" 
-												VerticalAlignment="Top"/>
+                                        <StackPanel Margin="5,0,5,0">
+                                            <StackPanel>
+                                                <Label Content="Select Properties:" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                                            </StackPanel>
+                                            
+                                            <Grid>
+                                                <TextBox Height="Auto" MinHeight="26" MaxHeight="90" Width="Auto" Margin="5,0,0,0" Text="" Padding="4" 
+                                                    DataContext="SelectProperties" x:Name="SelectPropertiesTextBox" 
+                                                    TextWrapping="Wrap" LostFocus="SearchQueryTextBox_LostFocus_Handler" TextAlignment="Left">
+                                                    <TextBox.ToolTip>
+                                                        <TextBlock><Run Text="Specifies the list of managed properties to return for each search result item."/><LineBreak /><Run Text="For a managed property to be returned; the Retrievable flag must be set to &quot;true&quot; in the search schema."/><LineBreak /><LineBreak /><Run Text="Example: Path,Title,Url"/></TextBlock>
+                                                    </TextBox.ToolTip>
+                                                </TextBox>
+                                            </Grid>
 
-                                            <Rectangle DockPanel.Dock="Right" Height="16" Width="16" Margin="10,0,0,0"/>
-                                            <TextBox Height="26" 
-												Margin="5,0,0,0" 
-												Text="" 
-												Padding="4"
-												DataContext="QueryTemplate"
-												x:Name="QueryTemplateTextBox"
-												LostFocus="SearchQueryTextBox_LostFocus_Handler"
-												TextAlignment="Left" />
-                                        </DockPanel>
+                                            <StackPanel Margin="5,0,0,0" Orientation="Horizontal" HorizontalAlignment="Right">
+                                                <Button Padding="0" DataContext="SelectProperties" Click="CleanSelectProperties_Click"  ToolTip="Clean up properties" Cursor="Hand" Height="16" Margin="10,0,0,0" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}">
+                                                    <Image Source="Images/clean_icon.png" Width="14" Height="14" DockPanel.Dock="Right"/>
+                                                </Button>
+                                                <Button Padding="0" DataContext="SelectProperties" Click="PasteExampleButton_Click" ToolTip="Paste Example" Cursor="Hand" Height="16" Margin="10,0,0,0" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}">
+                                                    <Image Source="Images/paste_icon.png" Width="14" Height="14" DockPanel.Dock="Right"/>
+                                                </Button>
+                                            </StackPanel>                                            
+                                            
+                                        </StackPanel>
 
-                                        <DockPanel Margin="5,5,5,0">
-                                            <Label Content="Select Properties:" 
-												HorizontalAlignment="Left" 
-												VerticalAlignment="Top"/>
+                                        <StackPanel Margin="5,0,5,0">
+                                            <StackPanel>
+                                                <Label Content="Hidden Constraints:" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                                            </StackPanel>
 
-                                            <Button Padding="0" DockPanel.Dock="Right" DataContext="SelectProperties" Click="PasteExampleButton_Click" ToolTip="Paste Example" Cursor="Hand" Height="16" Margin="10,0,0,0" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}">
-                                                <Image Source="Images/paste_icon.png" Width="14" Height="14" DockPanel.Dock="Right"/>
-                                            </Button>
+                                            <Grid>
+                                                <TextBox Height="Auto" MinHeight="26" MaxHeight="90" Width="Auto" Margin="5,0,0,0" Text="" Padding="4" 
+                                                     x:Name="HiddenConstraintsTextBox" 
+                                                     DataContext="HiddenConstraints"
+                                                     TextWrapping="Wrap" 
+                                                     LostFocus="SearchQueryTextBox_LostFocus_Handler" 
+                                                     TextAlignment="Left">
+                                                    <TextBox.ToolTip>
+                                                        <TextBlock><Run Text="Specifies additional query terms that will be appended to the query."/><LineBreak /></TextBlock>
+                                                    </TextBox.ToolTip>
+                                                </TextBox>
+                                            </Grid>
 
-                                            <TextBox Height="26" 
-												Margin="5,0,0,0" 
-												Text="" 
-												Padding="4"
-												DataContext="SelectProperties"
-												x:Name="SelectPropertiesTextBox"
-												LostFocus="SearchQueryTextBox_LostFocus_Handler"
-												TextAlignment="Left">
-                                                <TextBox.ToolTip>
-                                                    <TextBlock><Run Text="Specifies the list of managed properties to return for each search result item."/><LineBreak /><Run Text="For a managed property to be returned; the Retrievable flag must be set to &quot;true&quot; in the search schema."/><LineBreak /><LineBreak /><Run Text="Example: Path,Title,Url"/></TextBlock>
-                                                </TextBox.ToolTip>
-                                            </TextBox>
-                                        </DockPanel>
+                                            <StackPanel Margin="5,0,0,0" Orientation="Horizontal" HorizontalAlignment="Right">
+                                                <Button Padding="0" DataContext="HiddenConstraints" Click="PasteExampleButton_Click" ToolTip="Paste Example" Cursor="Hand" Height="16" Margin="10,0,0,0" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}">
+                                                    <Image Source="Images/paste_icon.png" Width="14" Height="14" DockPanel.Dock="Right"/>
+                                                </Button>
+                                            </StackPanel>
+
+                                        </StackPanel>
+
                                         <DockPanel Margin="5,5,5,0">
                                             <Label Content="Refiners:" 
 												HorizontalAlignment="Left" 
@@ -522,67 +569,6 @@
                                                     <TextBlock><Run Text="Specifies the list of properties to sort the search results by."/></TextBlock>
                                                 </TextBox.ToolTip>
                                             </TextBox>
-                                        </DockPanel>
-
-                                        <DockPanel Margin="5,5,5,0">
-                                            <Label Content="Trim Duplicates Include Id:" 
-												HorizontalAlignment="Left" 
-												VerticalAlignment="Top"/>
-
-                                            <Rectangle DockPanel.Dock="Right" Height="16" Width="16" Margin="10,0,0,0"/>
-
-                                            <TextBox Height="26" 
-												Margin="5,0,0,0" 
-												Text="" 
-												Padding="4"
-												x:Name="TrimDuplicatesIncludeIdTextBox"
-												DataContext="TrimDuplicatesIncludeId"
-												LostFocus="SearchQueryTextBox_LostFocus_Handler"
-												TextAlignment="Left"
-												ToolTip="Id of the document to include duplicates for."/>
-                                        </DockPanel>
-
-                                        <DockPanel Margin="5,5,5,0">
-                                            <Label Content="Hit Highlighted Properties:" 
-												HorizontalAlignment="Left" 
-												VerticalAlignment="Top"/>
-
-                                            <Rectangle DockPanel.Dock="Right" Height="16" Width="16" Margin="10,0,0,0"/>
-
-                                            <TextBox Height="26" 
-												Margin="5,0,0,0" 
-												Text="" 
-												Padding="4"
-												x:Name="HitHighlightedPropertiesTextBox"
-												DataContext="HitHighlightedProperties"
-												LostFocus="SearchQueryTextBox_LostFocus_Handler"
-												TextAlignment="Left">
-                                                <TextBox.ToolTip>
-                                                    <TextBlock><Run Text="Specifies the list of properties to include in the HitHighlightedProperties for each result item."/></TextBlock>
-                                                </TextBox.ToolTip>
-                                            </TextBox>
-                                        </DockPanel>
-
-                                        <DockPanel Margin="5,5,5,0">
-                                            <Label Content="Ranking Model Id:" 
-												HorizontalAlignment="Left" 
-												VerticalAlignment="Top"/>
-
-                                            <Button Padding="0" DockPanel.Dock="Right" DataContext="RankingModelId" Click="PasteExampleButton_Click" ToolTip="Paste Example" Cursor="Hand" Height="16" Margin="10,0,0,0" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}">
-                                                <Image Source="Images/paste_icon.png" Width="14" Height="14" DockPanel.Dock="Right"/>
-                                            </Button>
-
-                                            <Rectangle DockPanel.Dock="Right" Height="16" Width="16" Margin="10,0,0,0"/>
-
-                                            <TextBox Height="26" 
-												Margin="5,0,0,0" 
-												Text="" 
-												Padding="4"
-												x:Name="RankingModelIdTextBox"
-												DataContext="RankingModelId"
-												LostFocus="SearchQueryTextBox_LostFocus_Handler"
-												ToolTip="The GUID of the ranking model to be used for this search query.&#xA;&#xA;9399df62-f089-4033-bdc5-a7ea22936e8e is the default model used in 2010"
-												TextAlignment="Left" />
                                         </DockPanel>
 
                                         <DockPanel Margin="5,5,5,0">
@@ -682,7 +668,7 @@
                                                 <ComboBoxItem Tag="53" Content="Zulu [zu | 53]"/>
                                             </ComboBox>
                                         </DockPanel>
-                                        
+
                                         <DockPanel Margin="5,5,5,0">
                                             <Label Content="Result Source Id:" 
 												HorizontalAlignment="Left" 
@@ -724,7 +710,33 @@
                                         </DockPanel>
 
                                         <DockPanel Margin="5,5,5,0">
-                                            <Label Content="Hidden Constraints:" 
+                                            <Label Content="Ranking Model Id:" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                                            <Button Padding="0" DockPanel.Dock="Right" DataContext="RankingModelId" Click="PasteExampleButton_Click" ToolTip="Paste Example" Cursor="Hand" Height="16" Margin="10,0,0,0" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}">
+                                                <Image Source="Images/paste_icon.png" Width="14" Height="14" DockPanel.Dock="Right"/>
+                                            </Button>
+
+                                            <TextBox Height="26" Margin="5,0,0,0" Text="" Padding="4" x:Name="RankingModelIdTextBox" DataContext="RankingModelId"
+                                                     LostFocus="SearchQueryTextBox_LostFocus_Handler"
+                                                     ToolTip="The GUID of the ranking model to be used for this search query.&#xA;&#xA;9399df62-f089-4033-bdc5-a7ea22936e8e is the default model used in 2010"
+                                                     TextAlignment="Left" />
+                                        </DockPanel>
+
+                                        <DockPanel Margin="5,5,5,0">
+                                            <Label Content="Trim Duplicates Include Id:" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                                            <Rectangle DockPanel.Dock="Right" Height="16" Width="16" Margin="10,0,0,0"/>
+                                            <TextBox Height="26" 
+												Margin="5,0,0,0" 
+												Text="" 
+												Padding="4"
+												x:Name="TrimDuplicatesIncludeIdTextBox"
+												DataContext="TrimDuplicatesIncludeId"
+												LostFocus="SearchQueryTextBox_LostFocus_Handler"
+												TextAlignment="Left"
+												ToolTip="Id of the document to include duplicates for."/>
+                                        </DockPanel>
+
+                                        <DockPanel Margin="5,5,5,0">
+                                            <Label Content="Hit Highlighted Properties:" 
 												HorizontalAlignment="Left" 
 												VerticalAlignment="Top"/>
 
@@ -734,15 +746,29 @@
 												Margin="5,0,0,0" 
 												Text="" 
 												Padding="4"
-												x:Name="HiddenConstraintsTextBox"
-												DataContext="HiddenConstraints"
+												x:Name="HitHighlightedPropertiesTextBox"
+												DataContext="HitHighlightedProperties"
 												LostFocus="SearchQueryTextBox_LostFocus_Handler"
 												TextAlignment="Left">
                                                 <TextBox.ToolTip>
-                                                    <TextBlock><Run Text="Specifies additional query terms that will be appended to the query."/></TextBlock>
+                                                    <TextBlock><Run Text="Specifies the list of properties to include in the HitHighlightedProperties for each result item."/></TextBlock>
                                                 </TextBox.ToolTip>
                                             </TextBox>
                                         </DockPanel>
+
+                                        <DockPanel Margin="5,5,5,0">
+                                            <Label Content="Collapse Spec:" ToolTip="Collapse Specification" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                                            <Rectangle DockPanel.Dock="Right" Height="16" Width="16" Margin="10,0,0,0"/>
+                                            <TextBox Height="26" Margin="5,0,0,0" Text="" Padding="4" DataContext="CollapseSpecification"
+                                                     x:Name="CollapseSpecTextBox" LostFocus="SearchQueryTextBox_LostFocus_Handler" TextAlignment="Left">
+                                                <TextBox.ToolTip>
+                                                    <TextBlock><Run Text="A set of collapse specifications containing managed properties that are used to determine how to collapse individual search results."/><LineBreak /><Run Text="Results are collapsed into one or a specified number of results if they match any of the individual collapse specifications. Within a single"/><LineBreak /><Run Text="collapse specification, results will be collapsed if their properties match all of the individual properties in the collapse specification."/></TextBlock>
+                                                </TextBox.ToolTip>
+                                            </TextBox>
+                                        </DockPanel>
+
+                                        <Separator Margin="10,10,30,10" AutomationProperties.HelpText="Advanced options" />
+
                                         <DockPanel Margin="5,5,5,0">
                                             <Label Content="Personalization Data:" 
 		HorizontalAlignment="Left" 
@@ -765,6 +791,22 @@
                                         </DockPanel>
 
                                         <DockPanel Margin="5,5,5,0">
+                                            <Label Content="Query Template:" 
+                                                   HorizontalAlignment="Left" 
+                                                   VerticalAlignment="Top"/>
+
+                                            <Rectangle DockPanel.Dock="Right" Height="16" Width="16" Margin="10,0,0,0"/>
+                                            <TextBox Height="26" 
+                                                     Margin="5,0,0,0" 
+                                                     Text="" 
+                                                     Padding="4"
+                                                     DataContext="QueryTemplate"
+                                                     x:Name="QueryTemplateTextBox"
+                                                     LostFocus="SearchQueryTextBox_LostFocus_Handler"
+                                                     TextAlignment="Left" />
+                                        </DockPanel>
+
+                                        <DockPanel Margin="5,5,5,0">
                                             <Label Content="Results Url:" 
 												HorizontalAlignment="Left" 
 												VerticalAlignment="Top"/>
@@ -781,28 +823,6 @@
 												TextAlignment="Left">
                                                 <TextBox.ToolTip>
                                                     <TextBlock><Run Text="Specifies the URL for the page where the search results are going to be displayed."/></TextBlock>
-                                                </TextBox.ToolTip>
-                                            </TextBox>
-                                        </DockPanel>
-
-                                        <DockPanel Margin="5,5,5,0">
-                                            <Label Content="Collapse Spec:" 
-												ToolTip="Collapse Specifiation"
-												HorizontalAlignment="Left" 
-												VerticalAlignment="Top"/>
-
-                                            <Rectangle DockPanel.Dock="Right" Height="16" Width="16" Margin="10,0,0,0"/>
-
-                                            <TextBox Height="26" 
-												Margin="5,0,0,0" 
-												Text="" 
-												Padding="4"
-												DataContext="CollapseSpecifiation"
-												x:Name="CollapseSpecTextBox"
-												LostFocus="SearchQueryTextBox_LostFocus_Handler"
-												TextAlignment="Left">
-                                                <TextBox.ToolTip>
-                                                    <TextBlock><Run Text="A set of collapse specifications containing managed properties that are used to determine how to collapse individual search results."/><LineBreak /><Run Text="Results are collapsed into one or a specified number of results if they match any of the individual collapse specifications. Within a single"/><LineBreak /><Run Text="collapse specification, results will be collapsed if their properties match all of the individual properties in the collapse specification."/></TextBlock>
                                                 </TextBox.ToolTip>
                                             </TextBox>
                                         </DockPanel>
@@ -1061,9 +1081,9 @@
                 </GroupBox>
 
                 <GroupBox Grid.Column="0" Grid.Row="1" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Margin="0,0,-12,0" Style="{DynamicResource GroupBoxStyleNoHeader}">
-                    
 
-                    <Expander Name="ConnectionExpanderBox" Padding="5" Header="Connection" Foreground="Black" IsExpanded="True">
+
+                    <Expander Name="ConnectionExpanderBox" Padding="5" Header="Connection" Foreground="Black" IsExpanded="False">
                         <Expander.Content>
                             <Grid Margin="5,10,5,0">
                                 <Grid.ColumnDefinitions>
@@ -1123,7 +1143,7 @@
                                         </Grid.RowDefinitions>
 
                                         <Label Content="Authentication:"/>
-                                        <ComboBox Grid.Column="1" 
+                                        <ComboBox Grid.Column="2" 
 										SelectedValuePath="Content"
 										Padding="4" 
 										SelectionChanged="AuthenticationTypeComboBox_SelectionChanged"
@@ -1133,10 +1153,10 @@
                                             <ComboBoxItem Content="Anonymous" />
                                         </ComboBox>
 
-                                        <Rectangle Height="5" Grid.ColumnSpan="2" Grid.Row="1"/>
+                                        <Rectangle Height="5" Grid.ColumnSpan="3" Grid.Row="1"/>
 
                                         <Label Grid.Row="2" Content="Authentication Method:"/>
-                                        <ComboBox Grid.Row="2" Grid.Column="1"
+                                        <ComboBox Grid.Row="2" Grid.Column="2"
 										SelectedValuePath="Content"
 										IsEnabled="False"
 										Padding="4" 
@@ -1149,9 +1169,9 @@
                                             <ComboBoxItem DataContext="ForefrontAuth" Content="Forefront Gateway (TMG/UAG)" />
                                         </ComboBox>
 
-                                        <Rectangle Height="5" Grid.ColumnSpan="2" Grid.Row="3"/>
+                                        <Rectangle Height="5" Grid.ColumnSpan="3" Grid.Row="3"/>
 
-                                        <Grid Grid.Row="4" Grid.Column="1">
+                                        <Grid Grid.Row="4" Grid.Column="2">
                                             <Grid.RowDefinitions>
                                                 <RowDefinition/>
                                                 <RowDefinition/>
@@ -1232,7 +1252,7 @@
             </Grid>
         </DockPanel>
 
-        <GroupBox Grid.Row="3" Grid.Column="1" Header="Results" Margin="20,10,10,10" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+        <GroupBox Grid.Row="3" Grid.Column="2" Header="Results" Margin="20,10,10,10" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
             <DockPanel>
                 <TextBlock x:Name="ResultsTextBlock"/>
                 <TabControl>
@@ -1280,9 +1300,9 @@
                                                 </Grid.RowDefinitions>
 
                                                 <Label VerticalAlignment="Top" Grid.Row="0" Grid.Column="0" Content="Query:"/>
-                                                <TextBox IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalAlignment="Center" HorizontalAlignment="Left" Grid.Row="0" Grid.Column="1" Margin="3,0,3,7" Text="{Binding Query}"/>
+                                                <TextBox IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalAlignment="Center" HorizontalAlignment="Left" Grid.Row="0" Grid.Column="2" Margin="3,0,3,7" Text="{Binding Query}"/>
 
-                                                <Expander Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Header="View" HorizontalAlignment="Left">
+                                                <Expander Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Header="View" HorizontalAlignment="Left">
                                                     <Grid HorizontalAlignment="Left">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="110"/>
@@ -1304,16 +1324,16 @@
                                                         </Grid.RowDefinitions>
 
                                                         <Label VerticalAlignment="Top" Grid.Row="0" Grid.Column="0" Content="Template:"/>
-                                                        <TextBox IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalAlignment="Center" Grid.Row="0" Grid.Column="1" Margin="3,0,3,7" Text="{Binding Template}"/>
+                                                        <TextBox IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalAlignment="Center" Grid.Row="0" Grid.Column="2" Margin="3,0,3,7" Text="{Binding Template}"/>
 
                                                         <Label VerticalAlignment="Top" Grid.Row="1" Grid.Column="0" Content="Hidden Constraint:"/>
-                                                        <TextBox IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalAlignment="Center" Grid.Row="1" Grid.Column="1" Margin="3,0,3,7" Text="{Binding HiddenConstraint}"/>
+                                                        <TextBox IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalAlignment="Center" Grid.Row="1" Grid.Column="2" Margin="3,0,3,7" Text="{Binding HiddenConstraint}"/>
 
                                                         <Label VerticalAlignment="Top" Grid.Row="2" Grid.Column="0" Content="SiteSubscriptionId:"/>
-                                                        <TextBox IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalAlignment="Center" Grid.Row="2" Grid.Column="1" Margin="3,0,3,7" Text="{Binding SiteSubscriptionId}"/>
+                                                        <TextBox IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalAlignment="Center" Grid.Row="2" Grid.Column="2" Margin="3,0,3,7" Text="{Binding SiteSubscriptionId}"/>
 
                                                         <Label VerticalAlignment="Top" Grid.Row="3" Grid.Column="0" Margin="0,-7,0,7" Content="Bound Variables:"/>
-                                                        <ListBox Grid.Row="3" Grid.Column="1" ItemsSource="{Binding BoundVariables, Mode=OneWay}">
+                                                        <ListBox Grid.Row="3" Grid.Column="2" ItemsSource="{Binding BoundVariables, Mode=OneWay}">
                                                             <ListBox.ItemTemplate>
                                                                 <DataTemplate>
                                                                     <TextBox IsReadOnly="True" IsReadOnlyCaretVisible="False" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,0,-7,7" Width="450" Text="{Binding Mode=OneWay}"/>
@@ -1322,7 +1342,7 @@
                                                         </ListBox>
 
                                                         <Label VerticalAlignment="Top" Grid.Row="4" Grid.Column="0" Margin="0,-7,0,7" Content="Template Helper:"/>
-                                                        <ListBox Grid.Row="4" Grid.Column="1" ItemsSource="{Binding QueryTemplateHelper, Mode=OneWay}">
+                                                        <ListBox Grid.Row="4" Grid.Column="2" ItemsSource="{Binding QueryTemplateHelper, Mode=OneWay}">
                                                             <ListBox.ItemTemplate>
                                                                 <DataTemplate>
                                                                     <TextBox IsReadOnly="True" IsReadOnlyCaretVisible="False" TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,0,-7,7" Width="450" Text="{Binding Mode=OneWay}"/>
@@ -1332,22 +1352,22 @@
 
 
                                                         <Label VerticalAlignment="Top" Grid.Row="5" Grid.Column="0" Content="Relevant Results:"/>
-                                                        <TextBox IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalAlignment="Center" Grid.Row="5" Grid.Column="1" Margin="3,0,3,7" Text="{Binding RelevantResults}"/>
+                                                        <TextBox IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalAlignment="Center" Grid.Row="5" Grid.Column="2" Margin="3,0,3,7" Text="{Binding RelevantResults}"/>
 
                                                         <Label VerticalAlignment="Top" Grid.Row="6" Grid.Column="0" Content="Personal Results:"/>
-                                                        <TextBox IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalAlignment="Center" Grid.Row="6" Grid.Column="1" Margin="3,0,3,7" Text="{Binding PersonalResults}"/>
+                                                        <TextBox IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalAlignment="Center" Grid.Row="6" Grid.Column="2" Margin="3,0,3,7" Text="{Binding PersonalResults}"/>
 
                                                         <Label VerticalAlignment="Top" Grid.Row="7" Grid.Column="0" Content="Refiner Results:"/>
-                                                        <TextBox IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalAlignment="Center" Grid.Row="7" Grid.Column="1" Margin="3,0,3,7" Text="{Binding RefinerResults}"/>
+                                                        <TextBox IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalAlignment="Center" Grid.Row="7" Grid.Column="2" Margin="3,0,3,7" Text="{Binding RefinerResults}"/>
 
                                                         <Label VerticalAlignment="Top" Grid.Row="8" Grid.Column="0" Content="Query Suggestion:"/>
-                                                        <TextBox IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalAlignment="Center" Grid.Row="8" Grid.Column="1" Margin="3,0,3,7" Text="{Binding QuerySuggestion}"/>
+                                                        <TextBox IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalAlignment="Center" Grid.Row="8" Grid.Column="2" Margin="3,0,3,7" Text="{Binding QuerySuggestion}"/>
 
                                                         <Label VerticalAlignment="Top" Grid.Row="9" Grid.Column="0" Content="QueryExpanded1:"/>
-                                                        <TextBox IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalAlignment="Center" Grid.Row="9" Grid.Column="1" Margin="3,0,3,7" HorizontalAlignment="Left" Width="450" TextWrapping="Wrap" Text="{Binding QueryExpanded1}"/>
+                                                        <TextBox IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalAlignment="Center" Grid.Row="9" Grid.Column="2" Margin="3,0,3,7" HorizontalAlignment="Left" Width="450" TextWrapping="Wrap" Text="{Binding QueryExpanded1}"/>
 
                                                         <Label VerticalAlignment="Top" Grid.Row="10" Grid.Column="0" Content="QueryExpanded2:"/>
-                                                        <TextBox Margin="3,0,3,7" Grid.Row="10"  Grid.Column="1" IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalAlignment="Top" HorizontalAlignment="Left"  Width="450" TextWrapping="Wrap" Text="{Binding QueryExpanded2And3}"/>
+                                                        <TextBox Margin="3,0,3,7" Grid.Row="10"  Grid.Column="2" IsReadOnly="True" IsReadOnlyCaretVisible="False" VerticalAlignment="Top" HorizontalAlignment="Left"  Width="450" TextWrapping="Wrap" Text="{Binding QueryExpanded2And3}"/>
                                                     </Grid>
                                                 </Expander>
                                             </Grid>
@@ -1363,7 +1383,7 @@
 
         </GroupBox>
 
-        <StackPanel Grid.Row="5" Grid.ColumnSpan="2">
+        <StackPanel Grid.Row="5" Grid.ColumnSpan="3">
             <StatusBar Margin="10,0,10,0" Background="{x:Null}" BorderBrush="Gray">
                 <StatusBar.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -1379,9 +1399,16 @@
                 </StatusBar.ItemsPanel>
                 <StatusBarItem>
                     <DockPanel>
-                        <TextBlock x:Name="StateBarTextBlock" Text="Ready"/>
+                        <TextBlock x:Name="StateBarTextBlock" Text="Ready" HorizontalAlignment="Left"/>
                         <ProgressBar x:Name="ProgressBar" Value="0" Width="100" Visibility="Hidden" IsIndeterminate="False" Orientation="Horizontal" Height="18" Margin="15,0,0,0"/>
                     </DockPanel>
+                </StatusBarItem>
+                <StatusBarItem HorizontalAlignment="Right">
+                    <TextBox x:Name="RequestUriLengthTextBox" Foreground="Gray" Text="0000" BorderBrush="{x:Null}" SelectionBrush="{x:Null}" HorizontalAlignment="Right">
+                        <TextBox.ToolTip>
+                            <TextBlock><Run Text="Length of GET or POST request."/></TextBlock>
+                        </TextBox.ToolTip>
+                    </TextBox>
                 </StatusBarItem>
             </StatusBar>
         </StackPanel>
