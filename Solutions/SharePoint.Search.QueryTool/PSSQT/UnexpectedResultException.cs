@@ -15,6 +15,7 @@ namespace PSSQT
             var hdrs = result.RequestHeaders.ToDictionary();
 
             Data.Add("RequestHeaders", serializer.Serialize(hdrs));
+            Data.Add("RequestUri", result.RequestUri);
             Data.Add("RequestContent", result.RequestContent);
 
             // Response

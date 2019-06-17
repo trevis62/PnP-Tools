@@ -698,10 +698,7 @@ namespace PSSQT
                     }
                     else
                     {
-                        var ex = new UnexpectedResultException(queryResults, "(PrimaryQueryResult is null)");
- 
-
-                        ThrowTerminatingError(new ErrorRecord(ex, GetType().Name, ErrorCategory.NotSpecified, null));
+                        throw new UnexpectedResultException(queryResults, "(PrimaryQueryResult is null)");
                     }
                 }
                 catch (RankDetailTooManyResults ex)
