@@ -37,7 +37,6 @@ namespace PSSQT
 
         private static readonly Dictionary<Guid, CookieCollection> Tokens = new Dictionary<Guid, CookieCollection>();   // SPO Auth tokens
 
-
         public enum QueryLogClientType
         {
             CSOM,
@@ -574,7 +573,7 @@ namespace PSSQT
 
                 while (searchRequest.StartRow < totalRows)
                 {
-                    ShowProgress(searchRequest.StartRow.Value, totalRows, remaining);
+                    progress.ShowProgress(searchRequest.StartRow.Value, totalRows, remaining);
 
                     totalRows = GetResults(searchRequest);
 
@@ -735,18 +734,6 @@ namespace PSSQT
             WriteDebug(searchQueryRequest.PrintDebug());
 
             return searchQueryRequest;
-        }
-
-        private void ShowProgress(int startRow, int totalRows, int remaining)
-        {
-            if (remaining == 0)
-            {
-                WriteProgress(new ProgressRecord(1, "Processing results...", "..."));
-            }
-            else
-            {
-                WriteProgress(new ProgressRecord(1, "Processing results...", String.Format(" {0} out of {1}", startRow, totalRows)));
-            }
         }
 
         private string DefaultClientTypeName()

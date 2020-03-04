@@ -33,6 +33,8 @@ namespace PSSQT
 
         private const string separator = "==================================================================================================================";
 
+        protected IProgress progress;
+
         #endregion
 
         #region ScriptParameters
@@ -133,6 +135,14 @@ namespace PSSQT
             HelpMessage = "Skip validation of SSL certificate."
         )]
         public SwitchParameter SkipServerCertificateValidation { get; set; }
+
+        [Parameter(
+             Mandatory = false,
+             ValueFromPipelineByPropertyName = false,
+             ValueFromPipeline = false,
+             HelpMessage = "Select the type of progress indicator. Default is PowerShell WriteProgress."
+         )]
+        public ProgressType ProgressIndicator { get; set; } = ProgressType.Default;
         #endregion
 
         #region Methods
@@ -157,6 +167,8 @@ namespace PSSQT
             try
             {
                 base.ProcessRecord();
+
+                progress = ProgressFactory.CreateProgressIndicator(ProgressIndicator, this);
 
                 SkipSSLValidation = SkipServerCertificateValidation.IsPresent;
 
