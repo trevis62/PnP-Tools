@@ -43,6 +43,12 @@ namespace SearchQueryTool
             Suggest
         }
 
+        private enum PropertyType
+        {
+            Managed,
+            Crawled
+        }
+
         private const string DefaultSharePointSiteUrl = "http://localhost";
         private const string ConnectionPropsXmlFileName = "connection-props.xml";
         private const string AuthorityUri = "https://login.windows.net/common/oauth2/authorize";
@@ -51,6 +57,7 @@ namespace SearchQueryTool
         private SearchQueryRequest _searchQueryRequest;
         private readonly SearchSuggestionsRequest _searchSuggestionsRequest;
         private SearchConnection _searchConnection;
+        public SearchResultPresentationSettings SearchPresentationSettings;
         private string _presetAnnotation;
         private SearchResult _searchResults;
         private bool _enableExperimentalFeatures;
@@ -223,6 +230,7 @@ namespace SearchQueryTool
             //RankingModelIdTextBox.Text = _searchQueryRequest.RankingModelId;
             SourceIdTextBox.Text = searchQueryRequest.SourceId;
             CollapseSpecTextBox.Text = searchQueryRequest.CollapseSpecification;
+            AppendedQueryPropertiesTextBox.Text = searchQueryRequest.AppendedQueryProperties;
         }
 
         private SearchMethodType CurrentSearchMethodType
@@ -398,6 +406,7 @@ namespace SearchQueryTool
                 return;
             }
 
+            LoginInfo.Visibility = Visibility.Hidden;
             string dc = (AuthenticationMethodComboBox.SelectedItem as ComboBoxItem).DataContext as string;
             if (AuthenticationTypeComboBox.SelectedIndex == 2) dc = "Anonymous";
             if (dc == "WinAuth")
@@ -416,6 +425,7 @@ namespace SearchQueryTool
                 UsernameAndPasswordTextBoxContainer.Visibility = Visibility.Hidden;
                 LoginButtonContainer.Visibility = Visibility.Visible;
                 LoggedinLabel.Visibility = Visibility.Hidden;
+                LoginInfo.Visibility = Visibility.Visible;
             }
             else if (dc == "SPOAuth2")
             {
@@ -425,6 +435,7 @@ namespace SearchQueryTool
                 UsernameAndPasswordTextBoxContainer.Visibility = Visibility.Hidden;
                 LoginButtonContainer.Visibility = Visibility.Visible;
                 LoggedinLabel.Visibility = Visibility.Hidden;
+                LoginInfo.Visibility = Visibility.Visible;
             }
             else if (dc == "FormsAuth")
             {
@@ -996,7 +1007,6 @@ namespace SearchQueryTool
                 QueryTextBox.Focus();
                 return;
             }
-
             try
             {
                 _searchQueryRequest.QueryText = queryText;
@@ -1032,6 +1042,7 @@ namespace SearchQueryTool
                                     if (response.StatusCode.Equals(HttpStatusCode.OK))
                                     {
                                         RequestSuccessful();
+                                        status = "Done";
                                     }
                                     else
                                     {
@@ -1054,70 +1065,82 @@ namespace SearchQueryTool
                             SetSecondaryQueryResultItems(searchResults);
                         }
 
-                        MarkRequestOperation(false, status);
                     }, TaskScheduler.FromCurrentSynchronizationContext()).ContinueWith(task =>
                     {
                         if (task.Exception != null)
                         {
                             ShowError(task.Exception);
                         }
+                        MarkRequestOperation(false, status);
                     });
             }
             catch (Exception ex)
             {
-                RequestFailed();
                 MarkRequestOperation(false, status);
+                RequestFailed();
                 ShowError(ex);
             }
         }
 
         private void SetHitStatus(SearchQueryResult searchResults)
         {
-            if (null != searchResults)
+            this.Dispatcher.Invoke(() =>
             {
-                var totalRows = 0;
-                var queryElapsedTime = "0";
-                if (null != searchResults.QueryElapsedTime)
+                if (null != searchResults)
                 {
-                    queryElapsedTime = searchResults.QueryElapsedTime;
-                }
+                    var totalRows = 0;
+                    var queryElapsedTime = "0";
+                    if (null != searchResults.QueryElapsedTime)
+                    {
+                        queryElapsedTime = searchResults.QueryElapsedTime;
+                    }
 
-                if (null != searchResults.PrimaryQueryResult)
-                {
-                    totalRows = searchResults.PrimaryQueryResult.TotalRows;
+                    if (null != searchResults.PrimaryQueryResult)
+                    {
+                        totalRows = searchResults.PrimaryQueryResult.TotalRows;
+                    }
+                    HitStatusTextBlock.Text = String.Format("{0} hits in {1} ms", totalRows, queryElapsedTime);
                 }
-                HitStatusTextBlock.Text = String.Format("{0} hits in {1} ms", totalRows, queryElapsedTime);
-            }
+            });
         }
 
         private void RequestStarted()
         {
-            ConnectionExpanderBox.Foreground = Brushes.Purple;
-            HitStatusTextBlock.Text = "...";
+            this.Dispatcher.Invoke(() =>
+            {
+                ConnectionExpanderBox.Foreground = Brushes.Purple;
+                HitStatusTextBlock.Text = "...";
+            });
         }
 
         private void RequestSuccessful()
         {
-            ConnectionExpanderBox.IsExpanded = false;
-            ConnectionExpanderBox.Foreground = Brushes.Green;
-            RequestUriLengthTextBox.Foreground = Brushes.Gray;
-            HitStatusTextBlock.Foreground = Brushes.Black;
+            this.Dispatcher.Invoke(() =>
+            {
+                ConnectionExpanderBox.IsExpanded = false;
+                ConnectionExpanderBox.Foreground = Brushes.Green;
+                RequestUriLengthTextBox.Foreground = Brushes.Gray;
+                HitStatusTextBlock.Foreground = Brushes.Black;
 
-            // Save this successful item to our history
-            History.SaveHistoryItem();
+                // Save this successful item to our history
+                History.SaveHistoryItem();
 
-            // Reload entire history list and reset the current point to the latest entry
-            SearchHistory = new SearchHistory(HistoryFolderPath);
-            History.RefreshHistoryButtonState();
+                // Reload entire history list and reset the current point to the latest entry
+                SearchHistory = new SearchHistory(HistoryFolderPath);
+                History.RefreshHistoryButtonState();
 
-            RefreshBreadCrumbs();
+                RefreshBreadCrumbs();
+            });
         }
 
         private void RequestFailed()
         {
-            ConnectionExpanderBox.Foreground = Brushes.Red;
-            HitStatusTextBlock.Foreground = Brushes.Red;
-            RequestUriLengthTextBox.Foreground = Brushes.Red;
+            this.Dispatcher.Invoke(() =>
+            {
+                ConnectionExpanderBox.Foreground = Brushes.Red;
+                HitStatusTextBlock.Foreground = Brushes.Red;
+                RequestUriLengthTextBox.Foreground = Brushes.Red;
+            });
         }
 
         private Button GetHiddenConstraintsButton(string text)
@@ -1179,37 +1202,40 @@ namespace SearchQueryTool
 
         private void RefreshBreadCrumbs()
         {
-            // Clear old hidden constraints
-            HiddenConstraintWrapPanel.Children.Clear();
-
-            // ParseHiddenConstraints hidden constraints and populate panel with new breadcrumb buttons
-            var hiddenConstraints = HiddenConstraintsTextBox.Text;
-
-            if (string.IsNullOrWhiteSpace(hiddenConstraints))
+            this.Dispatcher.Invoke(() =>
             {
-                // Initialize state when we have no hidden constraints
-                ExpanderHiddenConstraints.Header = String.Format("Hidden Constraints");
-                BreadCrumbDockPanel.Visibility = Visibility.Collapsed;
-            }
-            else
-            {
-                // Extract patterns like with quotes and space, e.g.: ContentSource:"Local SharePoint"
-                var list = ParseHiddenConstraints(hiddenConstraints);
-                if (list.Any())
+                // Clear old hidden constraints
+                HiddenConstraintWrapPanel.Children.Clear();
+
+                // ParseHiddenConstraints hidden constraints and populate panel with new breadcrumb buttons
+                var hiddenConstraints = HiddenConstraintsTextBox.Text;
+
+                if (string.IsNullOrWhiteSpace(hiddenConstraints))
                 {
-                    ExpanderHiddenConstraints.Header = String.Format("Hidden Constraints ({0})", list.Count());
-                    foreach (var button in list.Select(GetHiddenConstraintsButton))
-                    {
-                        HiddenConstraintWrapPanel.Children.Add(button);
-                    }
-                    BreadCrumbDockPanel.Visibility = Visibility.Visible;
+                    // Initialize state when we have no hidden constraints
+                    ExpanderHiddenConstraints.Header = String.Format("Hidden Constraints");
+                    BreadCrumbDockPanel.Visibility = Visibility.Collapsed;
                 }
                 else
                 {
-                    // Hide breadcrumbs when there are no matches
-                    BreadCrumbDockPanel.Visibility = Visibility.Collapsed;
+                    // Extract patterns like with quotes and space, e.g.: ContentSource:"Local SharePoint"
+                    var list = ParseHiddenConstraints(hiddenConstraints);
+                    if (list.Any())
+                    {
+                        ExpanderHiddenConstraints.Header = String.Format("Hidden Constraints ({0})", list.Count());
+                        foreach (var button in list.Select(GetHiddenConstraintsButton))
+                        {
+                            HiddenConstraintWrapPanel.Children.Add(button);
+                        }
+                        BreadCrumbDockPanel.Visibility = Visibility.Visible;
+                    }
+                    else
+                    {
+                        // Hide breadcrumbs when there are no matches
+                        BreadCrumbDockPanel.Visibility = Visibility.Collapsed;
+                    }
                 }
-            }
+            });
         }
 
         private void HiddenConstraintsRemoveButton_OnClick(object sender, RoutedEventArgs e)
@@ -1249,7 +1275,6 @@ namespace SearchQueryTool
                 using (var reader = new StreamReader(response.GetResponseStream()))
                 {
                     var content = reader.ReadToEnd();
-
                     NameValueCollection requestHeaders = new NameValueCollection();
                     foreach (var header in request.Headers.AllKeys)
                     {
@@ -1323,6 +1348,7 @@ namespace SearchQueryTool
                     TaskCreationOptions.LongRunning)
                     .ContinueWith(task =>
                     {
+                        MarkRequestOperation(false, "Done");
                         if (task.Exception != null)
                         {
                             ShowError(task.Exception);
@@ -1373,14 +1399,16 @@ namespace SearchQueryTool
                             }
                         }
 
-                        MarkRequestOperation(false, "Ready");
                     }, TaskScheduler.FromCurrentSynchronizationContext());
             }
             catch (Exception ex)
             {
                 // log
-                MarkRequestOperation(false, "Ready");
                 ShowError(ex);
+            }
+            finally
+            {
+                MarkRequestOperation(false, "Done");
             }
         }
 
@@ -1544,19 +1572,27 @@ namespace SearchQueryTool
                     StackPanel spEntry = new StackPanel { Margin = new Thickness(25) };
 
                     string resultTitle;
-                    if (!string.IsNullOrEmpty(resultItem.Title))
-                        resultTitle = resultItem.Title;
+                    if (!string.IsNullOrWhiteSpace(resultItem.Title))
+                        resultTitle = resultItem.Title + "";
                     else if (resultItem.ContainsKey("PreferredName"))
-                        resultTitle = resultItem["PreferredName"];
+                        resultTitle = resultItem["PreferredName"] + "";
                     else if (resultItem.ContainsKey("DocId"))
-                        resultTitle = String.Format("DocId: {0}", resultItem["DocId"]);
+                        resultTitle = String.Format("DocId: {0}", resultItem["DocId"] + "");
                     else
-                        resultTitle = "";
+                        resultTitle = "<No title to display>";
 
                     resultTitle = counter + ". " + resultTitle;
 
-                    string path = resultItem.Path;
+                    if (SearchPresentationSettings != null && SearchPresentationSettings.PrimaryResultsTitleFormat != null)
+                    {
+                        var userFormat = SearchPresentationSettings.PrimaryResultsTitleFormat;
+                        if (!string.IsNullOrWhiteSpace(userFormat))
+                        {
+                            resultTitle = CustomizeTitle(userFormat, resultItem, counter);
+                        }
+                    }
 
+                    string path = resultItem.Path;
 
                     Hyperlink titleLink = new Hyperlink();
                     if (!string.IsNullOrWhiteSpace(resultItem.Path))
@@ -1796,6 +1832,26 @@ namespace SearchQueryTool
             PrimaryResultsTabItem.Content = sv;
         }
 
+        private string CustomizeTitle(string userFormat, ResultItem resultItem, int counter)
+        {
+            var customizedTitle = userFormat;
+            foreach (KeyValuePair<string, string> item in resultItem)
+            {
+                var oldValue = "{" + $"{item.Key}" + "}";
+                var newValue = "";
+                if (resultItem.ContainsKey(item.Key))
+                {
+                    newValue = resultItem[item.Key] + "";
+                }
+
+                customizedTitle = customizedTitle.Replace(oldValue, newValue);
+
+            }
+
+            customizedTitle = customizedTitle.Replace("{counter}", $"{counter}");
+            return customizedTitle;
+        }
+
         /// <summary>
         ///     Open the path to the item in a browser
         /// </summary>
@@ -1814,7 +1870,7 @@ namespace SearchQueryTool
             {
                 IsReadOnly = true,
                 IsReadOnlyCaretVisible = false,
-                Text = String.Format("{0}", "View all properties..."),
+                Text = "Managed properties ",
                 BorderBrush = null,
                 BorderThickness = new Thickness(0),
                 Foreground = Brushes.DodgerBlue,
@@ -1824,22 +1880,35 @@ namespace SearchQueryTool
                 Cursor = Cursors.Hand,
             };
 
-            tb.PreviewMouseLeftButtonUp += (sender, e) => OpenPreviewAllProperties(sender, e, resultItem);
+            tb.PreviewMouseLeftButtonUp += (sender, e) => OpenPreviewAllProperties(sender, e, resultItem, PropertyType.Managed);
+            propdp.Children.Add(tb);
 
-            propdp.Children.Add
-                (
-                    tb
-                );
+            var tb2 = new TextBox
+            {
+                IsReadOnly = true,
+                IsReadOnlyCaretVisible = false,
+                Text = "Crawled property names",
+                BorderBrush = null,
+                BorderThickness = new Thickness(0),
+                Foreground = Brushes.DodgerBlue,
+                FontSize = 14,
+                FontWeight = FontWeights.Bold,
+                TextDecorations = TextDecorations.Underline,
+                Cursor = Cursors.Hand,
+            };
+
+            tb2.PreviewMouseLeftButtonUp += (sender, e) => OpenPreviewAllProperties(sender, e, resultItem, PropertyType.Crawled);
+            propdp.Children.Add(tb2);
 
             spEntry.Children.Add(propdp);
         }
 
-        private void OpenPreviewAllProperties(object sender, MouseButtonEventArgs e, ResultItem resultItem)
+        private void OpenPreviewAllProperties(object sender, MouseButtonEventArgs e, ResultItem resultItem, PropertyType propertyType)
         {
             //Todo this method neeeds some refactor love
             MarkRequestOperation(false, "Running");
 
-            //Query a new search with refiner: "ManagedProperties(filter=600/0/*) and the path of the selected item
+            //Query a new search with refiner: "ManagedProperties(filter=5000/0/*) and the path of the selected item
             SearchQueryRequest sqr = new SearchQueryRequest();
             sqr.AcceptType = _searchQueryRequest.AcceptType;
             sqr.AuthenticationType = _searchQueryRequest.AuthenticationType;
@@ -1878,19 +1947,27 @@ namespace SearchQueryTool
             sqr.Password = _searchQueryRequest.Password;
             sqr.SecurePassword = _searchQueryRequest.SecurePassword;
 
-            //this is the magic ingredient to get all the properties back
-            sqr.Refiners = "ManagedProperties(filter=600/0/*)";
+            if (propertyType == PropertyType.Managed)
+            {
+                //this is the magic ingredient to get all the properties back
+                sqr.Refiners = "ManagedProperties(filter=5000/0/*)";
+            }
+            else
+            {
+                sqr.Refiners = "CrawledProperties(filter=5000/0/*)";
+            }
 
             try
             {
                 var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
-                CancellationToken ct = new CancellationToken();
+                var tokenSource = new CancellationTokenSource();
+                CancellationToken ct = tokenSource.Token;
                 Task.Factory.StartNew(() => HttpRequestRunner.RunWebRequest(sqr), ct,
                     TaskCreationOptions.LongRunning | TaskCreationOptions.AttachedToParent, scheduler).ContinueWith(
                         task =>
                         {
-                            var result = task.Result;
-                            var resultItem2 = GetResultItem(result);
+                            HttpRequestResponsePair result = task.Result;
+                            SearchQueryResult resultItem2 = GetResultItem(result);
 
                             //Extract all Properties from refiner result
                             if (resultItem2.PrimaryQueryResult == null ||
@@ -1901,52 +1978,103 @@ namespace SearchQueryTool
                                     "ManagedProperties is empty", MessageBoxButton.OK);
                                 return;
                             }
-                            var refiners = resultItem2.PrimaryQueryResult.RefinerResults[0];
-
-                            //Query again with the select properties set
-                            sqr.Refiners = "";
-                            sqr.SelectProperties = String.Join(",", refiners.Select(x => x.Name).ToArray());
-                            sqr.SelectProperties = sqr.SelectProperties
-                                .Replace(",ClassificationLastScan", "") // this mp messes up the call
-                                .Replace(",ClassificationConfidence", "") // this mp messes up the call
-                                .Replace(",ClassificationCount", ""); // this mp messes up the call
-                            sqr.HttpMethodType = HttpMethodType.Post;
-
-                            Task.Factory.StartNew(() => HttpRequestRunner.RunWebRequest(sqr), ct,
-                                TaskCreationOptions.LongRunning | TaskCreationOptions.AttachedToParent, scheduler)
-                                .ContinueWith(
-                                    innerTask =>
+                            if (propertyType == PropertyType.Crawled)
+                            {
+                                RefinerResult crawledPropertyNames = resultItem2.PrimaryQueryResult.RefinerResults[0];
+                                ResultItem cpResult = new ResultItem();
+                                var cpGroupMapper = new Dictionary<string, string>
                                     {
-                                        var innerResult = innerTask.Result;
-                                        var innerResult2 = GetResultItem(innerResult);
+                                        { "00020329-0000-0000-C000-000000000046", "SharePoint" },
+                                        { "00130329-0000-0130-c000-000000131346", "SharePoint" },
+                                        { "00140329-0000-0140-c000-000000141446", "SharePoint" },
+                                        { "0b63e343-9ccc-11d0-bcdb-00805fccce04", "Basic" },
+                                        { "158d7563-aeff-4dbf-bf16-4a1445f0366c","SharePoint" },
+                                        { "49691c90-7e17-101a-a91c-08002b2ecda9", "Basic" },
+                                        { "B725F130-47EF-101A-A5F1-02608C9EEBAC","Basic" },
+                                        { "012357bd-1113-171d-1f25-292bb0b0b0b0", "Internal" },
+                                        { "ED280121-B677-4E2A-8FBC-0D9E2325B0A2", "SharePoint" },
+                                        { "F29F85E0-4FF9-1068-AB91-08002B27B3D9","Office" },
+                                        { "64ae120f-487d-445a-8d5a-5258f99cb970","Document Parser" },
+                                        { "e835446c-937b-4492-95f3-d89988b01039","MetadataExtractor" }
+                                    };
 
-                                        //Open the new window and show the properties there
-                                        ResultItem relevantResult = innerResult2.PrimaryQueryResult.RelevantResults[0];
-
-                                        PropertiesDetail pd = new PropertiesDetail(relevantResult, sqr.QueryText);
-                                        pd.Show();
-                                    }).ContinueWith(innerTask =>
+                                foreach (var item in crawledPropertyNames)
+                                {
+                                    foreach (var map in cpGroupMapper)
                                     {
-                                        if (innerTask.Exception != null)
+                                        if (Regex.IsMatch(item.Name, map.Key + ":", RegexOptions.IgnoreCase))
                                         {
-                                            ShowError(task.Exception);
+                                            item.Name = Regex.Replace(item.Name, map.Key + ":", "", RegexOptions.IgnoreCase);
+                                            while (cpResult.ContainsKey(item.Name))
+                                            {
+                                                item.Name += " ";
+                                            }
+                                            cpResult.Add(item.Name, map.Value);
                                         }
-                                    }, scheduler);
+                                    }
+                                }
+
+                                PropertiesDetail pd = new PropertiesDetail(cpResult, sqr.QueryText);
+                                pd.Show();
+                            }
+                            else
+                            {
+                                var refiners = resultItem2.PrimaryQueryResult.RefinerResults[0];
+
+                                //Query again with the select properties set
+                                sqr.Refiners = "";
+                                sqr.SelectProperties = String.Join(",", refiners.Select(x => x.Name).ToArray());
+                                sqr.SelectProperties = string.Join(",",
+                                    sqr.SelectProperties.Split(',').Except(new[]
+                                        {"ClassificationLastScan", "ClassificationConfidence", "ClassificationCount", "ClassificationContext"}));
+
+                                sqr.HttpMethodType = HttpMethodType.Post;
+
+                                Task.Factory.StartNew(() => HttpRequestRunner.RunWebRequest(sqr), ct,
+                                    TaskCreationOptions.LongRunning | TaskCreationOptions.AttachedToParent, scheduler)
+                                    .ContinueWith(
+                                        innerTask =>
+                                        {
+                                            HttpRequestResponsePair innerResult = innerTask.Result;
+                                            SearchQueryResult innerResult2 = GetResultItem(innerResult);
+
+                                            if (innerResult2.PrimaryQueryResult == null)
+                                            {
+                                                MessageBox.Show("Could not load properties for the item");
+                                            }
+                                            else
+                                            {
+                                                //Open the new window and show the properties there
+                                                ResultItem relevantResult = innerResult2.PrimaryQueryResult.RelevantResults[0];
+                                                PropertiesDetail pd = new PropertiesDetail(relevantResult, sqr.QueryText);
+                                                pd.Show();
+                                            }
+
+                                        }).ContinueWith(innerTask =>
+                                        {
+                                            if (innerTask.Exception != null)
+                                            {
+                                                ShowError(task.Exception);
+                                            }
+                                        }, scheduler);
+                            }
                         }, scheduler).ContinueWith(task =>
                         {
                             if (task.Exception != null)
                             {
                                 ShowError(task.Exception);
                             }
+                            MarkRequestOperation(false, "Done");
                         }, scheduler);
             }
             catch (Exception ex)
             {
                 ShowError(ex);
             }
-
-
-            MarkRequestOperation(false, "Done");
+            finally
+            {
+                MarkRequestOperation(false, "Done");
+            }
         }
 
         private void rankDetail_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -2019,13 +2147,17 @@ namespace SearchQueryTool
                                 {
                                     ShowError(task.Exception);
                                 }
+                                MarkRequestOperation(false, "Done");
                             }, scheduler);
                 }
                 catch (Exception ex)
                 {
                     ShowError(ex);
                 }
-                MarkRequestOperation(false, "Done");
+                finally
+                {
+                    MarkRequestOperation(false, "Done");
+                }
             }
             else
             {
@@ -2446,30 +2578,33 @@ namespace SearchQueryTool
         /// <param name="status">The status.</param>
         private void MarkRequestOperation(bool starting, string status)
         {
-            RunButton.IsEnabled = !starting;
-
-            if (starting)
+            this.Dispatcher.Invoke(() =>
             {
-                ClearResultTabs();
-                QueryGroupBox.IsEnabled = false;
-                ConnectionExpanderBox.IsEnabled = false;
-            }
-            else
-            {
-                QueryGroupBox.IsEnabled = true;
-                ConnectionExpanderBox.IsEnabled = true;
-            }
+                RunButton.IsEnabled = !starting;
 
-            ProgressBar.Visibility = starting ? Visibility.Visible : Visibility.Hidden;
-            Duration duration = new Duration(TimeSpan.FromSeconds(30));
-            DoubleAnimation doubleanimation = new DoubleAnimation(100.0, duration);
+                if (starting)
+                {
+                    ClearResultTabs();
+                    QueryGroupBox.IsEnabled = false;
+                    ConnectionExpanderBox.IsEnabled = false;
+                }
+                else
+                {
+                    QueryGroupBox.IsEnabled = true;
+                    ConnectionExpanderBox.IsEnabled = true;
+                }
 
-            if (starting)
-                ProgressBar.BeginAnimation(RangeBase.ValueProperty, doubleanimation);
-            else
-                ProgressBar.BeginAnimation(RangeBase.ValueProperty, null);
+                ProgressBar.Visibility = starting ? Visibility.Visible : Visibility.Hidden;
+                Duration duration = new Duration(TimeSpan.FromSeconds(30));
+                DoubleAnimation doubleanimation = new DoubleAnimation(100.0, duration);
 
-            StateBarTextBlock.Text = status;
+                if (starting)
+                    ProgressBar.BeginAnimation(RangeBase.ValueProperty, doubleanimation);
+                else
+                    ProgressBar.BeginAnimation(RangeBase.ValueProperty, null);
+
+                StateBarTextBlock.Text = status;
+            });
         }
 
         /// <summary>
@@ -2477,12 +2612,15 @@ namespace SearchQueryTool
         /// </summary>
         private void ClearResultTabs()
         {
-            StatsResultTabItem.Content = null;
-            RawResultTabItem.Content = null;
-            PrimaryResultsTabItem.Content = null;
-            RefinementResultsTabItem.Content = null;
-            SecondaryResultsTabItem.Content = null;
-            SuggestionResultsTabItem.Content = null;
+            this.Dispatcher.Invoke(() =>
+            {
+                StatsResultTabItem.Content = null;
+                RawResultTabItem.Content = null;
+                PrimaryResultsTabItem.Content = null;
+                RefinementResultsTabItem.Content = null;
+                SecondaryResultsTabItem.Content = null;
+                SuggestionResultsTabItem.Content = null;
+            });
         }
 
         /// <summary>
@@ -2831,6 +2969,12 @@ namespace SearchQueryTool
             fb.Show();
         }
 
+        private void Options_Click(object sender, RoutedEventArgs e)
+        {
+            var options = new SearchPresentationSettings();
+            options.Show();
+        }
+
         /// <summary>
         /// Get a SearchConnection object based on the current alues of the relevant input boxes in the user interface.
         /// </summary>
@@ -2939,6 +3083,7 @@ namespace SearchQueryTool
                 {
                     Request = GetSearchQueryRequestFromUi(),
                     Connection = GetSearchConnectionFromUi(),
+                    PresentationSettings = SearchPresentationSettings,
                     Annotation = newAnnotation,
                     Path = selected.Path,
                     Name = Path.GetFileNameWithoutExtension(selected.Path)
@@ -2966,6 +3111,7 @@ namespace SearchQueryTool
                     {
                         _searchQueryRequest = searchPreset.Request;
                         _searchConnection = searchPreset.Connection;
+                        SearchPresentationSettings = searchPreset.PresentationSettings ?? new SearchResultPresentationSettings();
                         _presetAnnotation = searchPreset.Annotation;
 
                         InitializeControls();
@@ -3115,6 +3261,11 @@ namespace SearchQueryTool
 
         private void PresetComboBox_OnDropDownOpened(object sender, EventArgs e)
         {
+            RefreshPresetList();
+        }
+
+        public void RefreshPresetList()
+        {
             try
             {
                 var filter = PresetFilterTextBox.Text;
@@ -3126,6 +3277,7 @@ namespace SearchQueryTool
                 ShowMsgBox("Failed to read search presets. Error:" + ex.Message);
             }
         }
+
 
         private void BackButton_OnClick(object sender, RoutedEventArgs e)
         {
@@ -3140,6 +3292,21 @@ namespace SearchQueryTool
         private void AnnotatePreset_OnClick(object sender, RoutedEventArgs e)
         {
             AnnotatePresetTextBox.Visibility = AnnotatePresetTextBox.IsVisible ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        private void PresetFilterTextBox_OnLostFocus(object sender, RoutedEventArgs e)
+        {
+            RefreshPresetList();
+            PresetComboBox.IsDropDownOpen = true;
+        }
+
+        private void PresetFilterTextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Return)
+            {
+                RefreshPresetList();
+                PresetComboBox.IsDropDownOpen = true;
+            }
         }
 
         private void ClearHistory_Click(object sender, RoutedEventArgs e)
