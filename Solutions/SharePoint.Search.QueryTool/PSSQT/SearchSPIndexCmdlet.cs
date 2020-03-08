@@ -449,6 +449,15 @@ namespace PSSQT
          )]
         public SwitchParameter IncludePersonalOneDriveResults { get; set; }
 
+        [Parameter(
+             Mandatory = false,
+             ValueFromPipelineByPropertyName = false,
+             ValueFromPipeline = false,
+             HelpMessage = "Enable query identity diagnostics."
+         )]
+        public SwitchParameter EnableQueryIdentityDiagnostics { get; set; }
+
+
         #endregion
 
         #region Methods
@@ -553,6 +562,8 @@ namespace PSSQT
 
             searchQueryRequest.IncludePersonalOneDriveResults = IncludePersonalOneDriveResults.IsPresent ? true : (searchQueryRequest.IncludePersonalOneDriveResults.HasValue ? searchQueryRequest.IncludePersonalOneDriveResults : false);
 
+            searchQueryRequest.EnableQueryIdentityDiagnostics = EnableQueryIdentityDiagnostics.IsPresent ? true : (searchQueryRequest.EnableQueryIdentityDiagnostics.HasValue ? searchQueryRequest.EnableQueryIdentityDiagnostics : false);
+ 
             searchQueryRequest.Refiners = new StringListArgumentParser(Refiners).Parse() ?? searchQueryRequest.Refiners;
         }
  
@@ -565,6 +576,36 @@ namespace PSSQT
         {
             if (LimitAll || RowLimit > SearchResultBatchSize)
             {
+#if FALSE
+                int totalRows = 0;
+
+                IBatchProcessor batchProcessor = BatchProcessor.Create();
+
+
+                batchProcessor.Initialize(searchRequest, SearchResultBatchSize);
+
+
+                while (batchProcessor.NotFinished)
+                {
+                    progress.ShowProgress(searchRequest.StartRow.Value, totalRows, remaining);
+
+                    totalRows = GetResults(searchRequest);
+
+                    if (!LimitAll)
+                    {
+                        totalRows = (RowLimit.HasValue ? RowLimit.Value : rowLimitDefault);
+                    }
+                    searchRequest.StartRow += SearchResultBatchSize;
+                    remaining = totalRows - searchRequest.StartRow.Value;
+                    //Console.WriteLine(remaining);
+                    searchRequest.RowLimit = remaining < SearchResultBatchSize ? remaining : SearchResultBatchSize;
+
+                    if (SleepBetweenQueryBatches > 0)
+                    {
+                        Thread.Sleep(SleepBetweenQueryBatches);
+                    }
+                }
+#endif
                 // Try to loop through all results in increments of 500
                 searchRequest.RowLimit = SearchResultBatchSize;
 
@@ -750,6 +791,6 @@ namespace PSSQT
                 (string.IsNullOrWhiteSpace(searchQueryRequest.ClientType) ? DefaultClientTypeName() : searchQueryRequest.ClientType);
         }
 
-        #endregion
+#endregion
     }
 }

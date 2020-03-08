@@ -178,13 +178,15 @@
     <Compile Include="..\searchquerytool\model\SearchSuggestionsResult.cs">
       <Link>Model\SearchSuggestionsResult.cs</Link>
     </Compile>
-	    <Compile Include="..\searchquerytool\model\SearchResultPresentationSettings.cs">
+    <Compile Include="..\searchquerytool\model\SearchResultPresentationSettings.cs">
       <Link>Model\SearchResultPresentationSettings.cs</Link>
     </Compile>
     <Compile Include="..\SearchQueryTool\SPAuthenticationClient\AuthenticationClient.cs">
       <Link>SPAuthenticationClient\AuthenticationClient.cs</Link>
     </Compile>
+    <Compile Include="BatchProcessor.cs" />
     <Compile Include="Helpers\Extensions.cs" />
+    <Compile Include="IBatchProcessor.cs" />
     <Compile Include="Progress.cs" />
     <Compile Include="ResultProcessor\AllPropertiesInlineResultProcessor.cs" />
     <Compile Include="ResultProcessor\AllPropertiesResultProcessor.cs" />
