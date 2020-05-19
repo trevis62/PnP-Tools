@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>PSSQT</RootNamespace>
     <AssemblyName>PSSQT</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -85,9 +85,6 @@
     <Compile Include="..\SearchQueryTool\Helpers\RankDetail\BucketedStatic.cs">
       <Link>Helpers\RankDetail\BucketedStatic.cs</Link>
     </Compile>
-    <Compile Include="..\SearchQueryTool\Helpers\RankDetail\DocProps.cs">
-      <Link>Helpers\RankDetail\DocProps.cs</Link>
-    </Compile>
     <Compile Include="..\SearchQueryTool\Helpers\RankDetail\Dynamic.cs">
       <Link>Helpers\RankDetail\Dynamic.cs</Link>
     </Compile>
@@ -103,38 +100,11 @@
     <Compile Include="..\SearchQueryTool\Helpers\RankDetail\QueryTerm.cs">
       <Link>Helpers\RankDetail\QueryTerm.cs</Link>
     </Compile>
-    <Compile Include="..\SearchQueryTool\Helpers\RankDetail\RankDocHitList.cs">
-      <Link>Helpers\RankDetail\RankDocHitList.cs</Link>
-    </Compile>
     <Compile Include="..\SearchQueryTool\Helpers\RankDetail\RankingFeature.cs">
       <Link>Helpers\RankDetail\RankingFeature.cs</Link>
     </Compile>
-    <Compile Include="..\SearchQueryTool\Helpers\RankDetail\RankingFeatures.cs">
-      <Link>Helpers\RankDetail\RankingFeatures.cs</Link>
-    </Compile>
     <Compile Include="..\SearchQueryTool\Helpers\RankDetail\RankLogParser.cs">
       <Link>Helpers\RankDetail\RankLogParser.cs</Link>
-    </Compile>
-    <Compile Include="..\SearchQueryTool\Helpers\RankDetail\RankValuesList.cs">
-      <Link>Helpers\RankDetail\RankValuesList.cs</Link>
-    </Compile>
-    <Compile Include="..\SearchQueryTool\Helpers\RankDetail\RenderableBm25F.cs">
-      <Link>Helpers\RankDetail\RenderableBm25F.cs</Link>
-    </Compile>
-    <Compile Include="..\SearchQueryTool\Helpers\RankDetail\RenderableBucketedStatic.cs">
-      <Link>Helpers\RankDetail\RenderableBucketedStatic.cs</Link>
-    </Compile>
-    <Compile Include="..\SearchQueryTool\Helpers\RankDetail\RenderableDynamicFeature.cs">
-      <Link>Helpers\RankDetail\RenderableDynamicFeature.cs</Link>
-    </Compile>
-    <Compile Include="..\SearchQueryTool\Helpers\RankDetail\RenderableMinSpan.cs">
-      <Link>Helpers\RankDetail\RenderableMinSpan.cs</Link>
-    </Compile>
-    <Compile Include="..\SearchQueryTool\Helpers\RankDetail\RenderableRankingFeature.cs">
-      <Link>Helpers\RankDetail\RenderableRankingFeature.cs</Link>
-    </Compile>
-    <Compile Include="..\SearchQueryTool\Helpers\RankDetail\RenderableStaticFeature.cs">
-      <Link>Helpers\RankDetail\RenderableStaticFeature.cs</Link>
     </Compile>
     <Compile Include="..\SearchQueryTool\Helpers\RankDetail\ResultItem.cs">
       <Link>Helpers\RankDetail\ResultItem.cs</Link>
@@ -178,7 +148,7 @@
     <Compile Include="..\searchquerytool\model\SearchSuggestionsResult.cs">
       <Link>Model\SearchSuggestionsResult.cs</Link>
     </Compile>
-	    <Compile Include="..\searchquerytool\model\SearchResultPresentationSettings.cs">
+    <Compile Include="..\searchquerytool\model\SearchResultPresentationSettings.cs">
       <Link>Model\SearchResultPresentationSettings.cs</Link>
     </Compile>
     <Compile Include="..\SearchQueryTool\SPAuthenticationClient\AuthenticationClient.cs">
