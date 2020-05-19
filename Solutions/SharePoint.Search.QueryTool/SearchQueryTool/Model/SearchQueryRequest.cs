@@ -48,6 +48,8 @@ namespace SearchQueryTool.Model
         public string MultiGeoSearchConfiguration { get; set; }   // Make sure it is formatted according to method type. See MultiGeoSearchConfiguration
         public bool? IncludePersonalOneDriveResults { get; set; }  // https://support.microsoft.com/en-us/help/4469277/sharepoint-online-search-will-not-return-private-onedrive-results
 
+        public bool? EnableQueryIdentityDiagnostics { get; set; }
+
         public SearchQueryRequest Clone()
         {
             return (SearchQueryRequest)this.MemberwiseClone();
@@ -188,6 +190,11 @@ namespace SearchQueryTool.Model
             if (this.IncludePersonalOneDriveResults.HasValue && this.IncludePersonalOneDriveResults.Value)
             {
                 customPropertyParts.Add("ContentSetting:3");
+            }
+
+            if (this.EnableQueryIdentityDiagnostics == true)
+            {
+                customPropertyParts.Add("QueryIdentityDiagnostics:true");
             }
 
             if (!string.IsNullOrWhiteSpace(this.AppendedQueryProperties))

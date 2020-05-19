@@ -60,9 +60,31 @@ namespace PSSQT
 
         protected override void AddItem(List<string> result, string stringitem)
         {
-            if (stringitem.Equals("Rank", StringComparison.InvariantCultureIgnoreCase))
+            // stringitem may contain ascending/descending qualifier
+            var strparts = stringitem.Split(':');
+            var property = strparts[0];
+
+            if (property.Equals("Rank", StringComparison.InvariantCultureIgnoreCase))
             {
-                result.Add("Rank");   // todo: check this. For now we still do tolower()
+                if (strparts.Length > 1)
+                {
+                    result.Add($"Rank:{strparts[1]}");
+                }
+                else
+                {
+                    result.Add("Rank");   // todo: check this. For now we still do tolower()
+                }
+            }
+            else if (property.Equals("DocId", StringComparison.InvariantCultureIgnoreCase))
+            {
+                if (strparts.Length > 1)
+                {
+                    result.Add($"[DocId]:{strparts[1]}");
+                }
+                else
+                {
+                    result.Add("[DocId]");   // todo: check this. For now we still do tolower()
+                }
             }
             else
             {
