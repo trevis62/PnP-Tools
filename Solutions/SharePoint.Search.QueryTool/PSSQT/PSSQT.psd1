@@ -137,7 +137,7 @@ PrivateData = @{
 			If you do not specify AuthenticationType and your are not using a preset, AuthenticationType will be guessed based on the Site URL. If the host name ends with 'sharepoint.com',
 			we'll use SPOManagement, otherwise Windows
 
-			Please Note: The logic to select the correct authentication method has changed, so the bahvior might have changed since the previous version.
+			Please Note: The logic to select the correct authentication method has changed, so the behavior might have changed since the previous version.
 
 			Bugs fixed:
 
